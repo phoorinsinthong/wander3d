@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wander3D ✈️ ระบบวางแผนทริปเที่ยว 3D & แชร์เพื่อน</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Prompt (Thai), Fredoka (3D Toy Heading), Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet Map CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Canvas Confetti for celebrations -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  
+  <!-- QRCode.js for friend sharing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
+  <!-- Chart.js for Budget Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Custom 3D Cartoon Claymorphism Styles -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="text-slate-800 antialiased selection:bg-sky-200">
+
+  <!-- ========================================================================
+       TOP NAVBAR
+       ======================================================================== -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b-2 border-slate-200/80 shadow-sm py-3 px-4 md:px-8">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-400 to-indigo-500 flex items-center justify-center text-white text-2xl shadow-md border-2 border-white animate-float">
+          ✈️
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-heading font-black text-xl md:text-2xl bg-gradient-to-r from-sky-600 via-indigo-600 to-pink-500 bg-clip-text text-transparent">
+              Wander3D
+            </span>
+            <span class="badge-sticker-3d bg-pink-100 text-pink-700 text-[10px] py-0.5 px-2">
+              PRO 3D
+            </span>
+          </div>
+          <p class="text-[11px] font-semibold text-slate-500 -mt-1">
+            วางแผนทริปเที่ยว • งบประมาณ • แชร์เพื่อน
+          </p>
+        </div>
+      </div>
+
+      <!-- Center / Actions Bar -->
+      <div class="flex items-center gap-2 md:gap-3">
+        <!-- Currency Selector -->
+        <div class="flex items-center bg-slate-100 px-3 py-1.5 rounded-2xl border border-slate-200">
+          <span class="text-xs mr-1 text-slate-500 font-bold">สกุลเงิน:</span>
+          <select id="currencySelector" class="bg-transparent text-xs font-bold text-slate-700 focus:outline-none cursor-pointer">
+            <option value="THB">THB (฿)</option>
+            <option value="JPY">JPY (¥)</option>
+            <option value="USD">USD ($)</option>
+          </select>
+        </div>
+
+        <!-- Reset sample button -->
+        <button id="resetTripBtn" class="btn-3d btn-3d-clay text-xs py-2 px-3 hidden md:inline-flex" title="รีเซ็ตกลับเป็นทริปโตเกียว-ฟูจิ">
+          🔄 ตัวอย่าง
+        </button>
+
+        <!-- Share Trip Button -->
+        <button onclick="app.openShareModal()" class="btn-3d btn-3d-secondary text-xs md:text-sm py-2 px-4 shadow-md">
+          <span>👥</span>
+          <span>แชร์ทริปให้เพื่อน</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       MAIN WRAPPER
+       ======================================================================== -->
+  <main class="max-w-7xl mx-auto px-4 md:px-8 py-6">
+
+    <!-- HERO SECTION: TRIP COVER & PARTICIPANTS -->
+    <section class="card-3d overflow-hidden p-6 md:p-8 mb-8 bg-gradient-to-br from-white via-sky-50/40 to-indigo-50/50">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+        
+        <!-- Left: Trip Details -->
+        <div class="lg:col-span-8">
+          <div class="flex items-center gap-2 flex-wrap mb-2">
+            <span id="tripDestinationTag" class="badge-sticker-3d bg-sky-100 text-sky-800 text-xs">
+              📍 Tokyo & Mt. Fuji, Japan
+            </span>
+            <span id="tripDatesDisplay" class="badge-sticker-3d bg-emerald-100 text-emerald-800 text-xs">
+              15 - 19 ต.ค. 2026 (5 วัน 4 คืน)
+            </span>
+            <span class="badge-sticker-3d bg-indigo-100 text-indigo-800 text-xs">
+              🍁 ฤดูใบไม้เปลี่ยนสี
+            </span>
+          </div>
+
+          <h1 id="tripTitleDisplay" class="text-2xl md:text-4xl font-extrabold text-slate-800 tracking-tight">
+            ทริปตะลุยโตเกียว & ฟูจิซังสุดฟิน 🌸🗻
+          </h1>
+          <p id="tripSubtitleDisplay" class="text-sm md:text-base text-slate-600 mt-2 font-medium">
+            เที่ยว ชิม ช้อป สัมผัสหิมะและซากุระ 5 วัน 4 คืน
+          </p>
+
+          <!-- Tags -->
+          <div id="tripTagsContainer" class="flex flex-wrap gap-2 mt-4">
+            <!-- Populated via JS -->
+          </div>
+
+          <!-- Participants & Avatars Stack -->
+          <div class="mt-6 pt-5 border-t border-slate-200/80 flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-bold text-slate-500">ผู้ร่วมทริป:</span>
+              <div id="travelersStack" class="flex items-center">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+
+            <!-- Quick Add Item Button -->
+            <div class="flex items-center gap-2">
+              <button onclick="app.openAddActivityModal(1)" class="btn-3d btn-3d-mint text-xs md:text-sm py-2 px-3.5">
+                + เพิ่มกิจกรรม
+              </button>
+              <button onclick="app.openAddHotelModal()" class="btn-3d btn-3d-clay text-xs md:text-sm py-2 px-3 text-purple-700">
+                + ที่พัก
+              </button>
+              <button onclick="app.openAddFlightModal()" class="btn-3d btn-3d-clay text-xs md:text-sm py-2 px-3 text-sky-700">
+                + ตั๋วบิน
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: 3D Summary Widget -->
+        <div class="lg:col-span-4 bg-white/90 p-5 rounded-3xl border-2 border-sky-100 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-extrabold uppercase text-slate-400">ภาพรวมค่าใช้จ่าย</span>
+            <span class="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+              4 ผู้ร่วมทริป
+            </span>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex justify-between items-baseline">
+              <span class="text-xs font-semibold text-slate-500">งบรวมที่ตั้งไว้:</span>
+              <span id="headerTotalBudget" class="text-base font-extrabold text-slate-800">฿140,000</span>
+            </div>
+            <div class="flex justify-between items-baseline">
+              <span class="text-xs font-semibold text-slate-500">ประมาณการรวม:</span>
+              <span id="headerTotalCost" class="text-xl font-black text-sky-600">฿128,000</span>
+            </div>
+            <div class="flex justify-between items-baseline pt-2 border-t border-slate-100">
+              <span class="text-xs font-bold text-indigo-700">เฉลี่ยต่อคน:</span>
+              <span id="headerCostPerPerson" class="text-lg font-black text-indigo-600">฿32,000</span>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-100 text-center">
+            <button onclick="app.switchTab('budget')" class="text-xs font-bold text-sky-600 hover:text-sky-800 transition">
+              ดูรายละเอียดการหารเงิน & ชาร์ต ➔
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================
+         TAB NAVIGATION
+         ======================================================================== -->
+    <div class="flex items-center gap-2 md:gap-3 overflow-x-auto pb-3 mb-6 no-scrollbar">
+      <button data-tab="itinerary" class="nav-tab-btn btn-3d btn-3d-primary text-xs md:text-sm py-2.5 px-5 whitespace-nowrap">
+        <span>🗓️</span>
+        <span>แผนการเดินทาง & เวลา</span>
+      </button>
+      <button data-tab="transport" class="nav-tab-btn btn-3d btn-3d-clay text-xs md:text-sm py-2.5 px-5 whitespace-nowrap">
+        <span>✈️</span>
+        <span>เที่ยวบิน & บัตรเดินทาง</span>
+      </button>
+      <button data-tab="stays" class="nav-tab-btn btn-3d btn-3d-clay text-xs md:text-sm py-2.5 px-5 whitespace-nowrap">
+        <span>🏨</span>
+        <span>ข้อมูลที่พัก & โรงแรม</span>
+      </button>
+      <button data-tab="budget" class="nav-tab-btn btn-3d btn-3d-clay text-xs md:text-sm py-2.5 px-5 whitespace-nowrap">
+        <span>💰</span>
+        <span>สรุปงบ & ค่าใช้จ่าย</span>
+      </button>
+    </div>
+
+    <!-- ========================================================================
+         MAIN CONTENT SPLIT (DETAILS + 3D MAP)
+         ======================================================================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- LEFT COLUMN: TABS CONTENT (7 COLS ON DESKTOP) -->
+      <div class="lg:col-span-7 space-y-6">
+
+        <!-- TAB 1: ITINERARY TIMELINE -->
+        <div id="tab-itinerary" class="tab-content-panel">
+          
+          <!-- Day Selector Pills -->
+          <div class="mb-6 flex items-center gap-2 overflow-x-auto pb-2" id="dayFilterPills">
+            <!-- Injected via JS -->
+          </div>
+
+          <!-- Timeline Container -->
+          <div id="itineraryTimelineList">
+            <!-- Injected via JS -->
+          </div>
+
+        </div>
+
+        <!-- TAB 2: FLIGHTS & TRANSPORTATION -->
+        <div id="tab-transport" class="tab-content-panel hidden">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-xl md:text-2xl font-extrabold text-slate-800">เที่ยวบิน & บัตรเดินทาง ✈️</h2>
+              <p class="text-xs text-slate-500">Boarding Pass พร้อมรายละเอียดสัมภาระ เกท และสถานะการจอง</p>
+            </div>
+            <button onclick="app.openAddFlightModal()" class="btn-3d btn-3d-primary text-xs py-2 px-3.5">
+              + เพิ่มตั๋วเครื่องบิน
+            </button>
+          </div>
+
+          <!-- Boarding Passes -->
+          <div id="flightsListContainer">
+            <!-- Injected via JS -->
+          </div>
+
+          <!-- Transportation Passes -->
+          <div class="mt-8">
+            <h3 class="text-lg font-extrabold text-slate-800 mb-4">ตั๋วรถไฟ & บัตรโดยสารท้องถิ่น 🚆</h3>
+            <div id="passesListContainer">
+              <!-- Injected via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: ACCOMMODATIONS -->
+        <div id="tab-stays" class="tab-content-panel hidden">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-xl md:text-2xl font-extrabold text-slate-800">ข้อมูลที่พัก & โรงแรม 🏨</h2>
+              <p class="text-xs text-slate-500">ที่พักตลอด 5 วัน 4 คืน พร้อมสิ่งอำนวยความสะดวกและแผนที่</p>
+            </div>
+            <button onclick="app.openAddHotelModal()" class="btn-3d btn-3d-mint text-xs py-2 px-3.5">
+              + เพิ่มที่พัก
+            </button>
+          </div>
+
+          <div id="accommodationsListContainer">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- TAB 4: BUDGET & EXPENSES -->
+        <div id="tab-budget" class="tab-content-panel hidden">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-xl md:text-2xl font-extrabold text-slate-800">สรุปงบประมาณ & หารค่าใช้จ่าย 💰</h2>
+              <p class="text-xs text-slate-500">ตรวจสอบค่าใช้จ่ายจริง แยกหมวดหมู่ พร้อมระบบคำนวณเงินโอนคืนเพื่อน</p>
+            </div>
+          </div>
+
+          <!-- Budget Summary Cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <div class="card-3d p-4 bg-sky-50/70 border-sky-200">
+              <span class="text-[11px] font-bold text-sky-800 uppercase block">งบตั้งไว้</span>
+              <span id="budgetTotalAmount" class="text-lg md:text-xl font-black text-sky-900 mt-1 block">฿140,000</span>
+            </div>
+            <div class="card-3d p-4 bg-emerald-50/70 border-emerald-200">
+              <span class="text-[11px] font-bold text-emerald-800 uppercase block">ค่าใช้จ่ายรวม</span>
+              <span id="budgetGrandTotal" class="text-lg md:text-xl font-black text-emerald-900 mt-1 block">฿128,000</span>
+            </div>
+            <div class="card-3d p-4 bg-amber-50/70 border-amber-200">
+              <span class="text-[11px] font-bold text-amber-800 uppercase block">คงเหลือ</span>
+              <span id="budgetRemaining" class="text-lg md:text-xl font-black text-amber-900 mt-1 block">฿12,000</span>
+            </div>
+            <div class="card-3d p-4 bg-purple-50/70 border-purple-200">
+              <span class="text-[11px] font-bold text-purple-800 uppercase block">เฉลี่ย / คน</span>
+              <span id="budgetPerPerson" class="text-lg md:text-xl font-black text-purple-900 mt-1 block">฿32,000</span>
+            </div>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="card-3d p-5 mb-6">
+            <div class="flex justify-between items-center text-xs font-bold mb-2">
+              <span class="text-slate-600">การใช้งบประมาณ</span>
+              <span class="text-slate-700">ใช้ไปแล้วประมาณ 91%</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden border border-slate-200">
+              <div id="budgetProgressBar" class="h-full bg-emerald-500 rounded-full" style="width: 91%;"></div>
+            </div>
+          </div>
+
+          <!-- Chart & Category Breakdown -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-8">
+            <!-- Donut Chart -->
+            <div class="md:col-span-6 card-3d p-5 flex flex-col items-center justify-center">
+              <h4 class="font-extrabold text-slate-800 text-sm mb-4">สัดส่วนค่าใช้จ่ายตามหมวดหมู่</h4>
+              <div class="w-full h-56 relative flex items-center justify-center">
+                <canvas id="expenseChartCanvas"></canvas>
+              </div>
+            </div>
+
+            <!-- Breakdown Percentages -->
+            <div class="md:col-span-6 card-3d p-5">
+              <h4 class="font-extrabold text-slate-800 text-sm mb-4">รายการแยกตามหมวด</h4>
+              <div id="categoryBreakdownList">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Friend Bill Split Settlement -->
+          <div class="mt-8">
+            <h3 class="text-lg font-extrabold text-slate-800 mb-2">ระบบหารเงิน & คืนเงินเพื่อน (Fair Split) 🤝</h3>
+            <p class="text-xs text-slate-500 mb-4">คำนวณยอดเงินที่จ่ายไปเทียบกับส่วนแบ่งเท่ากัน แสดงยอดที่ต้องโอนให้กันทันที</p>
+            <div id="splitFriendsList">
+              <!-- Injected via JS -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: 3D INTERACTIVE ROUTE MAP (5 COLS STICKY) -->
+      <div class="lg:col-span-5 sticky top-20">
+        
+        <div class="card-3d overflow-hidden border-4 border-white shadow-xl">
+          
+          <!-- Map Header Controls -->
+          <div class="p-4 bg-gradient-to-r from-sky-500 to-indigo-600 text-white flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xl animate-float">🗺️</span>
+              <div>
+                <h3 class="font-heading font-extrabold text-base leading-tight">แผนที่การเดินทาง 3D</h3>
+                <p class="text-[11px] text-sky-100">พิกัดสถานที่จริง & เส้นทางเชื่อมต่อ</p>
+              </div>
+            </div>
+            
+            <button onclick="window.tripMapInstance.renderTripRoutesAndMarkers(app.trip, null)" 
+                    class="badge-sticker-3d bg-white/20 text-white hover:bg-white/30 text-xs cursor-pointer border-white/40">
+              🔄 รีเซ็ตมุมมอง
+            </button>
+          </div>
+
+          <!-- Map Element -->
+          <div id="tripMap" class="w-full h-[480px] z-10 bg-slate-100"></div>
+
+          <!-- Map Legend Bar -->
+          <div class="p-3 bg-white border-t border-slate-100 flex items-center justify-around flex-wrap gap-2 text-[11px] font-bold text-slate-600">
+            <span class="flex items-center gap-1">✈️ สนามบิน</span>
+            <span class="flex items-center gap-1">🏨 ที่พัก</span>
+            <span class="flex items-center gap-1">🍜 ร้านอาหาร</span>
+            <span class="flex items-center gap-1">🗼 เที่ยว</span>
+            <span class="flex items-center gap-1">🛍️ ช้อปปิ้ง</span>
+          </div>
+
+          <!-- Map Tip -->
+          <div class="p-3 bg-amber-50/70 border-t border-amber-100 text-center text-xs text-amber-800 font-medium">
+            💡 คลิกที่ปุ่ม <strong>📍</strong> ในแต่ละกิจกรรมเพื่อซูมและแสดงเส้นทางบนแผนที่
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ========================================================================
+       MODAL 1: SHARE TRIP & COLLABORATION
+       ======================================================================== -->
+  <div id="shareTripModal" class="modal-overlay">
+    <div class="modal-3d-box p-6 md:p-8">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-pink-100 text-pink-600 flex items-center justify-center text-xl shadow-sm">
+            👥
+          </div>
+          <div>
+            <h3 class="font-heading font-extrabold text-xl text-slate-800">แชร์ทริปให้เพื่อนดู</h3>
+            <p class="text-xs text-slate-500">สแกน QR Code หรือส่งลิงก์เพื่อให้เพื่อนเปิดดูได้ทันที</p>
+          </div>
+        </div>
+        <button class="modal-close-btn w-9 h-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center font-bold text-lg">
+          ✕
+        </button>
+      </div>
+
+      <!-- QR Code display -->
+      <div class="my-6 flex flex-col items-center justify-center">
+        <div class="p-4 bg-white rounded-3xl border-4 border-sky-200 shadow-md">
+          <div id="shareQrContainer" class="flex items-center justify-center"></div>
+        </div>
+        <p class="text-xs font-bold text-slate-600 mt-3">📱 ให้เพื่อนใช้กล้องมือถือสแกนเปิดแผนเที่ยวได้เลย</p>
+      </div>
+
+      <!-- Shareable Link input -->
+      <div class="space-y-3">
+        <label class="block text-xs font-bold text-slate-700 uppercase">ลิงก์สำหรับแชร์ทริป</label>
+        <div class="flex gap-2">
+          <input type="text" id="shareLinkInput" readonly class="input-3d text-xs font-mono text-slate-600 select-all" />
+          <button id="copyShareLinkBtn" class="btn-3d btn-3d-primary text-xs py-2 px-4 whitespace-nowrap">
+            📋 คัดลอก
+          </button>
+        </div>
+      </div>
+
+      <!-- Permissions -->
+      <div class="mt-5 p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs">
+        <span class="font-bold text-slate-700 block mb-1">สิทธิ์การเข้าถึง:</span>
+        <div class="flex gap-4">
+          <label class="flex items-center gap-2 cursor-pointer font-medium text-slate-600">
+            <input type="radio" name="sharePerm" value="view" checked class="text-sky-600" />
+            <span>👀 ดูได้อย่างเดียว (Viewer)</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer font-medium text-slate-600">
+            <input type="radio" name="sharePerm" value="edit" class="text-sky-600" />
+            <span>✏️ ร่วมแก้ไขได้ (Editor)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="mt-6 text-center">
+        <button class="modal-close-btn btn-3d btn-3d-clay text-xs py-2 px-6">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 2: ADD / EDIT ACTIVITY
+       ======================================================================== -->
+  <div id="activityModal" class="modal-overlay">
+    <div class="modal-3d-box p-6 md:p-8">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center text-xl shadow-sm">
+            ✨
+          </div>
+          <div>
+            <h3 class="font-heading font-extrabold text-xl text-slate-800">เพิ่มกิจกรรมใหม่</h3>
+            <p id="modalDayNumberDisplay" class="text-xs font-bold text-sky-600">วันที่ 1</p>
+          </div>
+        </div>
+        <button class="modal-close-btn w-9 h-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center font-bold text-lg">
+          ✕
+        </button>
+      </div>
+
+      <form id="activityForm" class="mt-5 space-y-4">
+        <input type="hidden" id="modalDayNumber" value="1" />
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อกิจกรรม / สถานที่ *</label>
+          <input type="text" id="actTitleInput" required placeholder="เช่น ทานราเมงข้อสอบ Ichiran, ขึ้นตึก Shibuya Sky" class="input-3d" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">เวลาเริ่ม *</label>
+            <input type="time" id="actTimeInput" required value="10:00" class="input-3d" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">เวลาสิ้นสุด</label>
+            <input type="time" id="actEndTimeInput" value="12:00" class="input-3d" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">หมวดหมู่</label>
+            <select id="actCategoryInput" class="input-3d">
+              <option value="attraction">🗼 สถานที่ท่องเที่ยว</option>
+              <option value="food">🍜 ร้านอาหาร / คาเฟ่</option>
+              <option value="shopping">🛍️ ช้อปปิ้ง</option>
+              <option value="transport">🚅 การเดินทาง / รถไฟ</option>
+              <option value="stay">🏨 เช็คอินที่พัก</option>
+              <option value="relaxation">♨️ พักผ่อน / ออนเซ็น</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ประมาณการค่าใช้จ่าย (บาท)</label>
+            <input type="number" id="actCostInput" placeholder="0" class="input-3d" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อสถานที่ / ปักหมุดบนแผนที่</label>
+          <input type="text" id="actLocationInput" placeholder="เช่น Shibuya, Shinjuku, Asakusa, Fuji, Ginza..." class="input-3d" />
+          <span class="text-[11px] text-slate-400 mt-1 block">ระบบจะตรวจจับพิกัดอัตโนมัติจากชื่อแลนด์มาร์ก</span>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">รายละเอียด / ไฮไลต์</label>
+          <textarea id="actDescInput" rows="2" placeholder="จดบันทึก เช่น เมนูแนะนำ, นัดเจอตรงไหน, กฎระเบียบ..." class="input-3d"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">การเดินทางไปยังจุดถัดไป</label>
+          <input type="text" id="actTransitInput" placeholder="เช่น 🚆 นั่งรถไฟ JR Yamanote 10 นาที หรือ 🚶 เดิน 500m" class="input-3d" />
+        </div>
+
+        <div class="pt-4 flex items-center justify-end gap-3">
+          <button type="button" class="modal-close-btn btn-3d btn-3d-clay text-xs py-2.5 px-4">
+            ยกเลิก
+          </button>
+          <button type="submit" class="btn-3d btn-3d-mint text-xs py-2.5 px-6">
+            💾 บันทึกกิจกรรม
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 3: ADD FLIGHT
+       ======================================================================== -->
+  <div id="flightModal" class="modal-overlay">
+    <div class="modal-3d-box p-6 md:p-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 class="font-heading font-extrabold text-xl text-slate-800">เพิ่มเที่ยวบิน ✈️</h3>
+        <button class="modal-close-btn w-9 h-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center font-bold text-lg">✕</button>
+      </div>
+
+      <form id="flightForm" class="mt-4 space-y-3">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ประเภทเที่ยวบิน</label>
+            <select id="flTypeInput" class="input-3d">
+              <option value="outbound">ขาไป (Outbound)</option>
+              <option value="return">ขากลับ (Return)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">รหัสเที่ยวบิน</label>
+            <input type="text" id="flCodeInput" required placeholder="TG682, NH848" class="input-3d" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">สายการบิน</label>
+          <input type="text" id="flAirlineInput" required placeholder="เช่น Thai Airways, ANA, Japan Airlines" class="input-3d" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">สนามบินต้นทาง (Code)</label>
+            <input type="text" id="flDepAirportInput" required placeholder="BKK, DMK" class="input-3d" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">เมืองต้นทาง</label>
+            <input type="text" id="flDepCityInput" required placeholder="กรุงเทพฯ (สุวรรณภูมิ)" class="input-3d" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">เวลาออกเดินทาง</label>
+            <input type="text" id="flDepTimeInput" required placeholder="23:55" class="input-3d" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">วันที่ออกเดินทาง</label>
+            <input type="text" id="flDepDateInput" required placeholder="14 ต.ค. 2026" class="input-3d" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">สนามบินปลายทาง (Code)</label>
+            <input type="text" id="flArrAirportInput" required placeholder="HND, NRT" class="input-3d" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">เมืองปลายทาง</label>
+            <input type="text" id="flArrCityInput" required placeholder="โตเกียว (ฮาเนดะ)" class="input-3d" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">เวลาถึง</label>
+            <input type="text" id="flArrTimeInput" required placeholder="08:10" class="input-3d" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">วันที่ถึง</label>
+            <input type="text" id="flArrDateInput" required placeholder="15 ต.ค. 2026" class="input-3d" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ระยะเวลาบิน</label>
+            <input type="text" id="flDurationInput" placeholder="6 ชม. 15 นาที" class="input-3d" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Terminal</label>
+            <input type="text" id="flTerminalInput" placeholder="Terminal 1" class="input-3d" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Gate</label>
+            <input type="text" id="flGateInput" placeholder="D4" class="input-3d" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ที่นั่ง</label>
+            <input type="text" id="flSeatInput" placeholder="32A, 32B" class="input-3d" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">สัมภาระ</label>
+            <input type="text" id="flBaggageInput" placeholder="30 กก." class="input-3d" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">รหัสการจอง (Booking Ref)</label>
+            <input type="text" id="flRefInput" placeholder="TG-ABC123" class="input-3d" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ราคารวม (บาท)</label>
+            <input type="number" id="flCostInput" placeholder="48000" class="input-3d" />
+          </div>
+        </div>
+
+        <div class="pt-4 flex items-center justify-end gap-3">
+          <button type="button" class="modal-close-btn btn-3d btn-3d-clay text-xs py-2 px-4">ยกเลิก</button>
+          <button type="submit" class="btn-3d btn-3d-primary text-xs py-2 px-6">💾 บันทึกตั๋วบิน</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 4: ADD HOTEL
+       ======================================================================== -->
+  <div id="hotelModal" class="modal-overlay">
+    <div class="modal-3d-box p-6 md:p-8">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 class="font-heading font-extrabold text-xl text-slate-800">เพิ่มที่พัก & โรงแรม 🏨</h3>
+        <button class="modal-close-btn w-9 h-9 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center font-bold text-lg">✕</button>
+      </div>
+
+      <form id="hotelForm" class="mt-4 space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อโรงแรม / ที่พัก *</label>
+          <input type="text" id="htNameInput" required placeholder="เช่น Shinjuku Granbell Hotel" class="input-3d" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อภาษาญี่ปุ่น / ท้องถิ่น</label>
+          <input type="text" id="htNameJpInput" placeholder="เช่น 新宿グランベルホテル" class="input-3d" />
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">จำนวนคืน</label>
+            <input type="number" id="htNightsInput" value="2" class="input-3d" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">เช็คอิน (วันที่)</label>
+            <input type="text" id="htCheckInDateInput" placeholder="15 ต.ค. 2026" class="input-3d" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">เวลาเช็คอิน</label>
+            <input type="text" id="htCheckInTimeInput" value="15:00 น." class="input-3d" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">เช็คเอาท์ (วันที่)</label>
+            <input type="text" id="htCheckOutDateInput" placeholder="17 ต.ค. 2026" class="input-3d" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">เวลาเช็คเอาท์</label>
+            <input type="text" id="htCheckOutTimeInput" value="11:00 น." class="input-3d" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">รูปแบบห้องพัก</label>
+          <input type="text" id="htRoomTypeInput" placeholder="เช่น Superior Quadruple Room" class="input-3d" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">ที่อยู่</label>
+          <input type="text" id="htAddressInput" placeholder="Kabukicho, Shinjuku, Tokyo" class="input-3d" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Latitude</label>
+            <input type="number" step="any" id="htLatInput" value="35.6961" class="input-3d" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Longitude</label>
+            <input type="number" step="any" id="htLngInput" value="139.7042" class="input-3d" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">ราคารวมทั้งสิ้น (บาท)</label>
+            <input type="number" id="htPriceTotalInput" placeholder="22000" class="input-3d" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">รหัสการจอง (Booking Ref)</label>
+            <input type="text" id="htRefInput" placeholder="BK-12345" class="input-3d" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">บันทึกเพิ่มเติม</label>
+          <textarea id="htNotesInput" rows="2" placeholder="เช่น ฝากกระเป๋าได้ก่อนเวลา, รวมอาหารเช้า..." class="input-3d"></textarea>
+        </div>
+
+        <div class="pt-4 flex items-center justify-end gap-3">
+          <button type="button" class="modal-close-btn btn-3d btn-3d-clay text-xs py-2 px-4">ยกเลิก</button>
+          <button type="submit" class="btn-3d btn-3d-mint text-xs py-2 px-6">💾 บันทึกที่พัก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       TOAST NOTIFICATION CONTAINER
+       ======================================================================== -->
+  <div id="appToast" class="toast-3d">
+    <span class="text-xl">✨</span>
+    <span id="toastMessage" class="text-xs md:text-sm text-slate-800">การแจ้งเตือน</span>
+  </div>
+
+  <!-- Application Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

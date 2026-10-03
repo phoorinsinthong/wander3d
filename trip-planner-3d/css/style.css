@@ -1,0 +1,582 @@
+/* ==========================================================================
+   Wander3D - 3D Cartoon / Claymorphism Style System
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --font-main: 'Prompt', 'Plus Jakarta Sans', sans-serif;
+  --font-heading: 'Fredoka', 'Prompt', cursive, sans-serif;
+  
+  /* 3D Toy Palette */
+  --color-brand-primary: #38BDF8;      /* Sky Blue */
+  --color-brand-primary-dark: #0284C7;
+  --color-brand-secondary: #FB7185;    /* Coral Pink */
+  --color-brand-secondary-dark: #E11D48;
+  --color-brand-accent: #FBBF24;       /* Cheese Yellow */
+  --color-brand-accent-dark: #D97706;
+  --color-brand-mint: #34D399;         /* Mint Green */
+  --color-brand-mint-dark: #059669;
+  --color-brand-purple: #A78BFA;       /* Lavender */
+  --color-brand-purple-dark: #7C3AED;
+  
+  --bg-clay: #F0F4F8;
+  --bg-card: #FFFFFF;
+  --text-dark: #1E293B;
+  --text-muted: #64748B;
+  
+  /* 3D Clay Shadows */
+  --clay-shadow-sm: 0 4px 0 #CBD5E1, 0 6px 12px rgba(148, 163, 184, 0.2);
+  --clay-shadow-md: 0 8px 0 #CBD5E1, 0 12px 20px rgba(148, 163, 184, 0.25);
+  --clay-shadow-lg: 0 12px 0 #CBD5E1, 0 18px 28px rgba(148, 163, 184, 0.3);
+  --clay-border: 3px solid rgba(255, 255, 255, 0.85);
+  --radius-card: 26px;
+  --radius-pill: 9999px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-main);
+  background: linear-gradient(135deg, #F0F6FD 0%, #F5F3FF 50%, #FFF7ED 100%);
+  color: var(--text-dark);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, .font-heading {
+  font-family: var(--font-heading);
+}
+
+/* Custom 3D Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #E2E8F0;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #94A3B8;
+  border-radius: 8px;
+  border: 2px solid #E2E8F0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #64748B;
+}
+
+/* ==========================================================================
+   3D Buttons & Micro-Interactions
+   ========================================================================== */
+.btn-3d {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  border-radius: 20px;
+  padding: 10px 20px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+  user-select: none;
+  position: relative;
+  text-decoration: none;
+}
+
+.btn-3d:active {
+  transform: translateY(5px);
+}
+
+/* Blue Primary 3D */
+.btn-3d-primary {
+  background: linear-gradient(180deg, #38BDF8 0%, #0284C7 100%);
+  color: #FFFFFF;
+  box-shadow: 0 6px 0 #0369A1, 0 10px 18px rgba(2, 132, 199, 0.35);
+}
+.btn-3d-primary:hover {
+  background: linear-gradient(180deg, #60A5FA 0%, #0284C7 100%);
+}
+.btn-3d-primary:active {
+  box-shadow: 0 1px 0 #0369A1, 0 3px 6px rgba(2, 132, 199, 0.35);
+}
+
+/* Pink Secondary 3D */
+.btn-3d-secondary {
+  background: linear-gradient(180deg, #FB7185 0%, #E11D48 100%);
+  color: #FFFFFF;
+  box-shadow: 0 6px 0 #BE123C, 0 10px 18px rgba(225, 29, 72, 0.35);
+}
+.btn-3d-secondary:hover {
+  background: linear-gradient(180deg, #F43F5E 0%, #BE123C 100%);
+}
+.btn-3d-secondary:active {
+  box-shadow: 0 1px 0 #BE123C, 0 3px 6px rgba(225, 29, 72, 0.35);
+}
+
+/* Mint Green 3D */
+.btn-3d-mint {
+  background: linear-gradient(180deg, #34D399 0%, #059669 100%);
+  color: #FFFFFF;
+  box-shadow: 0 6px 0 #047857, 0 10px 18px rgba(5, 150, 105, 0.35);
+}
+.btn-3d-mint:active {
+  box-shadow: 0 1px 0 #047857, 0 3px 6px rgba(5, 150, 105, 0.35);
+}
+
+/* Amber Accent 3D */
+.btn-3d-accent {
+  background: linear-gradient(180deg, #FBBF24 0%, #D97706 100%);
+  color: #78350F;
+  box-shadow: 0 6px 0 #B45309, 0 10px 18px rgba(217, 119, 6, 0.35);
+}
+.btn-3d-accent:active {
+  box-shadow: 0 1px 0 #B45309, 0 3px 6px rgba(217, 119, 6, 0.35);
+}
+
+/* White / Pillowy Clay 3D */
+.btn-3d-clay {
+  background: #FFFFFF;
+  color: #1E293B;
+  box-shadow: 0 6px 0 #CBD5E1, 0 10px 18px rgba(148, 163, 184, 0.3);
+}
+.btn-3d-clay:hover {
+  background: #F8FAFC;
+}
+.btn-3d-clay:active {
+  box-shadow: 0 1px 0 #CBD5E1, 0 3px 6px rgba(148, 163, 184, 0.3);
+}
+
+/* Small 3D Icon button */
+.btn-3d-icon {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==========================================================================
+   3D Cards & Containers
+   ========================================================================== */
+.card-3d {
+  background: #FFFFFF;
+  border-radius: var(--radius-card);
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 0 #E2E8F0, 0 18px 30px rgba(148, 163, 184, 0.18);
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.card-3d:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 0 #E2E8F0, 0 22px 35px rgba(148, 163, 184, 0.22);
+}
+
+/* Glossy highlight line on top of cards */
+.card-3d::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 12px;
+  right: 12px;
+  height: 6px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 100%);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+/* 3D Floating Sticker */
+.badge-sticker-3d {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.1), 0 6px 10px rgba(0,0,0,0.06);
+}
+
+/* ==========================================================================
+   Boarding Pass (3D Flight Cards)
+   ========================================================================== */
+.boarding-pass-card {
+  background: #FFFFFF;
+  border-radius: 28px;
+  border: 3px solid #E2E8F0;
+  box-shadow: 0 10px 0 #CBD5E1, 0 20px 30px rgba(148, 163, 184, 0.18);
+  position: relative;
+  overflow: hidden;
+}
+
+.boarding-pass-header {
+  background: linear-gradient(135deg, #0284C7 0%, #38BDF8 100%);
+  color: #FFFFFF;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.boarding-pass-notch-left,
+.boarding-pass-notch-right {
+  position: absolute;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  background: #F0F4F8;
+  border-radius: 50%;
+  z-index: 10;
+  border: 3px solid #CBD5E1;
+}
+.boarding-pass-notch-left {
+  left: -14px;
+}
+.boarding-pass-notch-right {
+  right: -14px;
+}
+
+.boarding-pass-perforated {
+  border-bottom: 2px dashed #CBD5E1;
+  margin: 16px 0;
+}
+
+/* ==========================================================================
+   Leaflet 3D Custom Marker & Popups
+   ========================================================================== */
+.custom-leaflet-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.marker-3d-wrapper {
+  position: relative;
+  width: 44px;
+  height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.marker-3d-pin {
+  width: 44px;
+  height: 44px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--pin-bg, #3B82F6);
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2), 0 8px 16px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.marker-3d-wrapper:hover .marker-3d-pin {
+  transform: rotate(-45deg) scale(1.15) translateY(-4px);
+}
+
+.marker-3d-emoji {
+  transform: rotate(45deg);
+  font-size: 20px;
+  user-select: none;
+}
+
+.marker-3d-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  transform: rotate(45deg);
+  background: #FEF08A;
+  color: #854D0E;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  border: 1.5px solid #FFFFFF;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.marker-3d-shadow {
+  width: 22px;
+  height: 7px;
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 50%;
+  margin-top: 2px;
+  filter: blur(1px);
+}
+
+/* Custom 3D Leaflet Popup */
+.leaflet-popup-content-wrapper {
+  background: #FFFFFF !important;
+  border-radius: 22px !important;
+  border: 3px solid #E2E8F0 !important;
+  box-shadow: 0 12px 0 #CBD5E1, 0 20px 30px rgba(0, 0, 0, 0.15) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
+.leaflet-popup-tip {
+  background: #FFFFFF !important;
+  box-shadow: none !important;
+}
+
+.popup-3d-card {
+  width: 260px;
+  font-family: var(--font-main);
+}
+
+.popup-3d-header {
+  padding: 12px 14px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.popup-category-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+.category-transport { background: #E0F2FE; color: #0369A1; }
+.category-stay { background: #F3E8FF; color: #6D28D9; }
+.category-food { background: #FFEDD5; color: #C2410C; }
+.category-attraction { background: #FFE4E6; color: #BE123C; }
+.category-shopping { background: #D1FAE5; color: #047857; }
+.category-relaxation { background: #FEF3C7; color: #B45309; }
+
+.popup-time {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
+}
+
+.popup-image {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+}
+
+.popup-title {
+  margin: 10px 14px 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.popup-subtitle {
+  margin: 0 14px 6px;
+  font-size: 12px;
+  color: #64748B;
+}
+
+.popup-notes {
+  margin: 0 14px 10px;
+  font-size: 12px;
+  color: #334155;
+  background: #F8FAFC;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.popup-footer {
+  padding: 10px 14px;
+  background: #F8FAFC;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #E2E8F0;
+}
+
+.popup-cost {
+  font-weight: 700;
+  color: #0284C7;
+  font-size: 13px;
+}
+
+.popup-gmap-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: #E11D48;
+  text-decoration: none;
+  background: #FFE4E6;
+  padding: 4px 10px;
+  border-radius: 12px;
+  transition: background 0.15s;
+}
+.popup-gmap-link:hover {
+  background: #FECDD3;
+}
+
+/* ==========================================================================
+   Floating 3D Animations & Mascots
+   ========================================================================== */
+@keyframes floatToy {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+
+.animate-float {
+  animation: floatToy 3.5s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(56, 189, 248, 0);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2.5s infinite;
+}
+
+/* ==========================================================================
+   Timeline 3D Step Connector
+   ========================================================================== */
+.timeline-stem {
+  position: absolute;
+  top: 40px;
+  bottom: -20px;
+  left: 27px;
+  width: 4px;
+  background: #E2E8F0;
+  border-radius: 4px;
+}
+
+.timeline-step-badge {
+  width: 58px;
+  height: 58px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 6px 0 #CBD5E1, 0 10px 15px rgba(0,0,0,0.08);
+  font-weight: 800;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+/* Transit connector between items */
+.transit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: #F1F5F9;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  border: 1px dashed #CBD5E1;
+  margin: 8px 0 8px 68px;
+}
+
+/* ==========================================================================
+   Modals & Overlays
+   ========================================================================== */
+.modal-overlay {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-3d-box {
+  background: #FFFFFF;
+  border-radius: 32px;
+  border: 4px solid #FFFFFF;
+  box-shadow: 0 20px 0 #CBD5E1, 0 30px 60px rgba(0, 0, 0, 0.25);
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: scale(0.9) translateY(20px);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-overlay.active .modal-3d-box {
+  transform: scale(1) translateY(0);
+}
+
+/* Form Inputs 3D */
+.input-3d {
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: 16px;
+  border: 2px solid #E2E8F0;
+  background: #F8FAFC;
+  font-family: var(--font-main);
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+.input-3d:focus {
+  outline: none;
+  background: #FFFFFF;
+  border-color: #38BDF8;
+  box-shadow: 0 4px 0 #0284C7;
+}
+
+/* Toast Notification */
+.toast-3d {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #FFFFFF;
+  border: 3px solid #38BDF8;
+  border-radius: 20px;
+  padding: 14px 22px;
+  box-shadow: 0 10px 0 #0284C7, 0 16px 25px rgba(2, 132, 199, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  z-index: 9999;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.toast-3d.show {
+  transform: translateY(0);
+  opacity: 1;
+}
